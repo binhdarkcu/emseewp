@@ -53,7 +53,7 @@ body {
 }
 
 .assessment-section {
-  width: 768px;
+  width: 800px;
   display: table;
   margin: 0 auto;
 }
@@ -271,6 +271,11 @@ body {
   height: 16px;
 }
 
+.form-check-input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
 .symptoms-output {
   float: left;
   width: 100%;
@@ -296,4 +301,12 @@ body {
 
 .your-detail .form-row {
   padding-bottom: 10px;
+}
+
+.tooltip-icon{
+    color: #0e8f9c;
+}
+.tooltip-inner {
+    max-width: 350px;
+    text-align: left;
 }
