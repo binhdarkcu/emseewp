@@ -271,6 +271,12 @@ body {
   height: 16px;
 }
 
+.symptoms_list .symptom-item:after {
+    content: "";
+    clear: both;
+    display: block;
+}
+
 .form-check-input[type="checkbox"] {
   width: 16px;
   height: 16px;

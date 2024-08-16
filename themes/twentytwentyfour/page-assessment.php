@@ -292,22 +292,22 @@
 												<div class="column col1"><?=$symptom_row['symptom_item']?></div>
 												<div class="column col2">
 													<div class="middle">
-														<input class="answer-checkbox" value="Not at all" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="Not at all" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col3">
 													<div class="middle">
-														<input class="answer-checkbox" value="A little" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="A little" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col4">
 													<div class="middle">
-														<input class="answer-checkbox" value="Quite a bit" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="Quite a bit" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col5">
 													<div class="middle">
-														<input class="answer-checkbox" value="Extremely" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="Extremely" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 											</div> <?php } ?>
@@ -324,7 +324,7 @@
 									<div class="questionnaire-actions">
 										<div class="middle-actions">
 											<button data-back-tab="2" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-											<button data-progress="78" data-next-tab="4" class="btn-hide btn btn--lg btn--orange questionnaire4-next">Continue</button>
+											<button id="submitButton"  data-progress="78" data-next-tab="4" class="btn-hide btn btn--lg btn--orange questionnaire4-next">Continue</button>
 										</div>
 									</div>
 								</div>
@@ -636,16 +636,26 @@
 					$('#questionnaire_21').addClass('showing');
 				}
 			});
-			// onchange in tab 3
-			// tab 1: 16%
-			// tab 2: 40%
-// 			var currentProgress = 16;
-// 			$('.symptom-item input[type="radio"]').change(function() {
-// 				var percent_complete = 40 / $('#symptoms-questions').val();
-// 				currentProgress += percent_complete;
-// 				progressBar.width(currentProgress + '%');
-// 				percentLabel.text(currentProgress + '% complete');
-// 			});
+			// Function to check if all radios in a group are selected
+            function validateGroupSelection(group) {
+                return $(group).find('.symptom-row').length === $(group).find('.symptom-row input:checked').length;
+            }
+            function validateSymptomForm() {
+                let allGroupsValid = true;
+
+                $('.symptom-group').each(function() {
+                    if (!validateGroupSelection(this)) {
+                        allGroupsValid = false;
+                        return false; // Exit the loop early
+                    }
+                });
+
+                if (allGroupsValid) {
+                    $('#submitButton').removeClass('btn-hide');
+                } else {
+                    $('#submitButton').addClass('btn-hide');
+                }
+            }
 
 			function checkSymptomGroup(group) {
 				var selected = false;
@@ -661,13 +671,12 @@
 					var groupName = $(group).data('group');
 					$('.symptoms-output').show();
 					$('#' + groupName).show();
-					$('.questionnaire4-next').removeClass('btn-hide');
-					console.log(groupName + ': Quite a bit or Extremely is selected');
+					//console.log(groupName + ': Quite a bit or Extremely is selected');
 					// You can perform any action here
 				} else {
 					var groupName = $(group).data('group');
 					$('#' + groupName).hide();
-					console.log(groupName + ': Neither Quite a bit nor Extremely is selected');
+					//console.log(groupName + ': Neither Quite a bit nor Extremely is selected');
 				}
 			}
 			// Check all groups on page load or when a radio button is clicked
@@ -680,6 +689,11 @@
 			$('.symptom-group input[type="radio"]').on('change', function() {
 				checkAllGroups();
 			})
+			$('.symptom-group .symptom-radio').on('change', function() {
+                validateSymptomForm();
+            })
+
+			validateSymptomForm();
 			checkAllGroups();
 
 			$('[data-toggle="tooltip"]').tooltip()
