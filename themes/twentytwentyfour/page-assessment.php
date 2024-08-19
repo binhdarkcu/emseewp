@@ -21,6 +21,7 @@
 			<div class="container">
 				<div class="content">
 				    <?php
+				    $submittedReport = '';
 				    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['question_result_nonce']) && wp_verify_nonce($_POST['question_result_nonce'], 'question_result_form')) {
                         if (isset($_POST['user_name']) && isset($_POST['user_age'])) {
                             // Sanitize and retrieve form data
@@ -39,15 +40,18 @@
                             $page4_question9 = sanitize_text_field($_POST['page4_question9']);
                             $page4_question10 = sanitize_text_field($_POST['page4_question10']);
                             $page4_question11 = sanitize_text_field($_POST['page4_question11']);
-
-
+//                            $symptoms_data = $_POST['symptoms_list'];
+                             $symptoms_data = array();
                             // Process symptoms data
-                            $symptoms_data = [];
-                            if (!empty($_POST['symptoms_list'])) {
-                                foreach ($_POST['symptoms_list'] as $symptom_name => $symptom_value) {
-                                    $symptoms_data[$symptom_name] = sanitize_text_field($symptom_value);
-                                }
-                            }
+
+                             if (!empty($_POST['symptoms_list'])) {
+                                 foreach ($_POST['symptoms_list'] as $name => $value) {
+                                     $symptoms_data[] = array(
+                                         'symptom_name' => ucwords(str_replace('-', ' ', $name)),
+                                         'symptom_value' => $value
+                                     );
+                                 }
+                             }
                             // Create a new post in the "Question Result" post type
                             $post_data = array(
                                 'post_title'    => $user_name . ' - ' . $user_age,
@@ -79,8 +83,10 @@
                                 // Save symptoms data as a serialized array or individual fields
                                 update_field('symptoms_data', $symptoms_data, $post_id);
                                 // Redirect to the same page without the form data
-                                echo "The Question Result was successfully saved.";
-
+                                echo "<div class='submitted-report'>
+                                    <p>The Question Result was successfully saved.</p>
+                                    <a href='/'>Back to homepage</a>
+                                </div>";
                                 exit;
                             } else {
                                 // Handle errors
@@ -125,7 +131,7 @@
 									</div>
 									<div class="questionnaire-actions">
 										<div class="middle-actions">
-											<button data-progress="4" data-next-tab="2" class="disable btn btn--lg btn--orange questionnaire-continue">Next</button>
+											<button data-progress="16" data-next-tab="2" class="disable btn btn--lg btn--orange questionnaire-continue">Next</button>
 										</div>
 									</div>
 								</div>
@@ -179,7 +185,7 @@
                                     ?> <div class="questionnaire-actions">
 											<div class="middle-actions">
 												<button data-back-tab="1" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-												<button data-progress="16" data-next-tab="3" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
+												<button data-progress="64" data-next-tab="5" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
 											</div>
 										</div>
 									</div>
@@ -257,8 +263,8 @@
                                     }
                                     ?> <div class="questionnaire-actions">
 											<div class="middle-actions">
-												<button data-back-question-page="1" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-												<button data-progress="16" data-next-tab="3" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
+												<button data-back-question-page="1" data-back-tab="2" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
+												<button data-progress="64" data-next-tab="5" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
 											</div>
 										</div>
 									</div>
@@ -292,28 +298,28 @@
 												<div class="column col1"><?=$symptom_row['symptom_item']?></div>
 												<div class="column col2">
 													<div class="middle">
-														<input class="answer-checkbox symptom-radio" value="Not at all" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="Not at all" type="radio" name="symptoms_list[<?=sanitize_title($symptom['symptom_title'])?>][<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col3">
 													<div class="middle">
-														<input class="answer-checkbox symptom-radio" value="A little" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="A little" type="radio" name="symptoms_list[<?=sanitize_title($symptom['symptom_title'])?>][<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col4">
 													<div class="middle">
-														<input class="answer-checkbox symptom-radio" value="Quite a bit" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="Quite a bit" type="radio" name="symptoms_list[<?=sanitize_title($symptom['symptom_title'])?>][<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col5">
 													<div class="middle">
-														<input class="answer-checkbox symptom-radio" value="Extremely" type="radio" name="symptoms_list[<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input class="answer-checkbox symptom-radio" value="Extremely" type="radio" name="symptoms_list[<?=sanitize_title($symptom['symptom_title'])?>][<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 											</div> <?php } ?>
 										</div> <?php } ?> <input id="symptoms-questions" type="hidden" name="symptoms-questions" value="<?php echo $symptom_questions; ?>">
 										<div class="symptoms-output">
-											<div class="output-title">Symptom Output</div> <?php
+											<div class="output-title">Report Output</div> <?php
                                        $index = 4;
                                        foreach($symptoms_list as $symptom) {
                                        $index++;
@@ -386,7 +392,7 @@
 								<div class="questionnaire-actions">
 									<div class="middle-actions">
 										<button data-back-tab="3" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-										<button data-progress="85" data-next-tab="5" class="btn-hide btn btn--lg btn--orange questionnaire-next has-result-next-tab">Continue</button>
+										<button data-has-result-tab="1" data-progress="85" data-next-tab="5" class="btn-hide btn btn--lg btn--orange questionnaire-next has-result-next-tab">Continue</button>
 									</div>
 								</div>
 							</div>
@@ -450,9 +456,6 @@
 	<script>
 	window.addEventListener("load", function(event) {
 		$(document).ready(function() {
-
-
-
 			var clsQuestionnaireSection = $('.questionnaire-section');
 			var progressBar = $('#progressBar');
 			var percentLabel = $('#percentLabel');
@@ -470,6 +473,8 @@
 			var result10 = $('#result10').val();
 			var result11 = $('#result11').val();
 
+			var hasResultAtStep = 0;
+
 			function checkUserAndAge() {
 				if($('#user_name').val() != '' && $('#user_age').val() != '') {
 					$('.questionnaire-continue').removeClass('disable')
@@ -481,6 +486,7 @@
 				checkUserAndAge();
 			});
 			// Handle next button
+
 			$('.questionnaire-continue, .has-result-next-tab, .questionnaire4-next').on('click', function(e) {
 				e.preventDefault();
 				var dataNextQuestion = $(this).data('next-tab');
@@ -512,11 +518,13 @@
 							32: result3,
 						}
 						if(resultQ3[answer] != undefined) {
+						    hasResultAtStep = 2;
 							$('#question-result').html('Output: ' + resultQ3[answer]);
 							$('.question-item[data-question="4"]').removeClass('display')
 							$('.has-result-next-tab').removeClass('btn-hide')
 						}
 						if(answer == 33) {
+						    hasResultAtStep = 0;
 							$('#question-result').html('')
 							$('.has-result-next-tab').addClass('btn-hide')
 							$('.question-item[data-question="4"]').addClass('display')
@@ -532,6 +540,7 @@
 								43: result4
 							}
 							if(resultQ4[answer] != undefined) {
+							    hasResultAtStep = 2;
 								$('#question-result').html('Output: ' + resultQ4[answer]);
 								$('.has-result-next-tab').removeClass('btn-hide')
 							}
@@ -541,30 +550,47 @@
 							$('#questionnaire_22').removeClass('showing')
 							$('#question-result').html('Output: ' + result4);
 							$('.has-result-next-tab').removeClass('btn-hide')
+							hasResultAtStep = 2;
 						} else {
 							$('.questionnaire-children').removeClass('showing')
 							$('#questionnaire_22').addClass('showing');
 							$('.has-result-next-tab').addClass('btn-hide')
+							$('.question-item[data-question="6"]').removeClass('display')
+							$('.question-item[data-question="7"]').removeClass('display')
+							$('.question-item[data-question="8"]').removeClass('display')
+                            $('.question-item[data-question="5"] input[type="radio"]').prop('checked', false);
+                            $('.question-item[data-question="6"] input[type="radio"]').prop('checked', false);
+                            $('.question-item[data-question="7"] input[type="radio"]').prop('checked', false);
 							$('#question-result').html('')
+							hasResultAtStep = 0;
 						}
 					}
 					if(currentQuestion == 5) {
 						$('.has-result-next-tab').addClass('btn-hide')
 						$('#question-result').html('')
+						$('.question-item[data-question="6"] input[type="radio"]').prop('checked', false);
+						$('.question-item[data-question="7"] input[type="radio"]').prop('checked', false);
+						$('.question-item[data-question="8"] input[type="radio"]').prop('checked', false);
 						if(answer == 51) {
 							$('.question-item[data-question="6"]').addClass('display')
 							$('.question-item[data-question="7"]').removeClass('display')
+							$('.question-item[data-question="8"]').removeClass('display')
 						} else if(answer == 52) {
 							$('.question-item[data-question="6"]').removeClass('display')
 							$('.question-item[data-question="7"]').addClass('display')
+							$('.question-item[data-question="8"]').removeClass('display')
 						}
 					}
 					if(currentQuestion == 6) {
 						$('.has-result-next-tab').removeClass('btn-hide')
+						$('.question-item[data-question="7"]').removeClass('display')
+						$('.question-item[data-question="8"]').removeClass('display')
 						if(answer == 61) {
 							$('#question-result').html('Output: ' + result5);
+							hasResultAtStep = 2;
 						} else if(answer == 62) {
 							$('#question-result').html('Output: ' + result2);
+							hasResultAtStep = 2;
 						}
 					}
 					if(currentQuestion == 7) {
@@ -572,14 +598,17 @@
 							$('#question-result').html('')
 							$('.has-result-next-tab').addClass('btn-hide')
 							$('.question-item[data-question="8"]').addClass('display')
+							hasResultAtStep = 0;
 						} else if(answer == 72) {
 							$('.has-result-next-tab').removeClass('btn-hide')
 							$('.question-item[data-question="8"]').removeClass('display')
 							$('#question-result').html('Output: ' + result4);
+							hasResultAtStep = 2;
 						}
 					}
 					if(currentQuestion == 8) {
 						$('.has-result-next-tab').removeClass('btn-hide')
+						hasResultAtStep = 2;
 						if(answer == 81) {
 							$('#question-result').html('Output: ' + result2);
 						} else if(answer == 82) {
@@ -609,32 +638,51 @@
 			$('.questionnaire-actions .questionnaire-back').click(function(e) {
 				e.preventDefault();
 				var backTab = $(this).data('back-tab');
-				if(backTab == 1) {
-					clsQuestionnaireSection.removeClass('current');
-					$('#questionnaire_1').addClass('current');
-					$('.question-item').removeClass('display');
-					$('.question-item[data-question="3"]').addClass('display');
-					$('.question-item[data-question="5"]').addClass('display');
-					$('.question-item input[type="radio"]').prop('checked', false);
-					$('#question-result').html('')
-				}
-				if(backTab == 2) {
-					clsQuestionnaireSection.removeClass('current');
-					$('#questionnaire_2').addClass('current');
-				}
-				if(backTab == 3) {
-					clsQuestionnaireSection.removeClass('current');
-					$('#questionnaire_3').addClass('current');
-				}
-				if(backTab == 4) {
-					clsQuestionnaireSection.removeClass('current');
-					$('#questionnaire_4').addClass('current');
-				}
-				var backQuestionPage = $(this).data('back-question-page');
-				if(backQuestionPage == 1) {
-					$('.questionnaire-children').removeClass('showing')
-					$('#questionnaire_21').addClass('showing');
-				}
+
+
+                if(backTab == 1) {
+                    clsQuestionnaireSection.removeClass('current');
+                    $('#questionnaire_1').addClass('current');
+                    $('.question-item').removeClass('display');
+                    $('.question-item[data-question="3"]').addClass('display');
+                    $('.question-item[data-question="5"]').addClass('display');
+                    $('.question-item input[type="radio"]').prop('checked', false);
+                    $('#question-result').html('')
+                } else if(backTab == 2) {
+                       clsQuestionnaireSection.removeClass('current');
+                       $('#questionnaire_2').addClass('current');
+                       var backQuestionPage = $(this).data('back-question-page');
+                       if(backQuestionPage == 1) {
+                           $('.questionnaire-children').removeClass('showing')
+                           $('#questionnaire_21').addClass('showing');
+                           $('#question-result').html('')
+                           $('.question-item[data-question="4"] input[type="radio"]').prop('checked', false);
+                       }
+                } else {
+                    if(hasResultAtStep != 0) {
+                        if(hasResultAtStep == 2) {
+                            clsQuestionnaireSection.removeClass('current');
+                            $('#questionnaire_2').addClass('current');
+                            var questionStep = questionnaireStart.find('.question-step');
+                            $(questionStep).removeClass('is-highlighted')
+                            $('.question-step[data-step=' + hasResultAtStep + ']').addClass('is-highlighted')
+                        }
+                    } else {
+                        if(backTab == 3) {
+                            clsQuestionnaireSection.removeClass('current');
+                            $('#questionnaire_3').addClass('current');
+                        }
+                        if(backTab == 4) {
+                            clsQuestionnaireSection.removeClass('current');
+                            $('#questionnaire_4').addClass('current');
+                        }
+                        var backQuestionPage = $(this).data('back-question-page');
+                        if(backQuestionPage == 1) {
+                            $('.questionnaire-children').removeClass('showing')
+                            $('#questionnaire_21').addClass('showing');
+                        }
+                    }
+                }
 			});
 			// Function to check if all radios in a group are selected
             function validateGroupSelection(group) {
