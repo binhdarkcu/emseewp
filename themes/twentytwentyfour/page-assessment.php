@@ -21,7 +21,7 @@
 			<div class="container">
 				<div class="content">
 				    <?php
-				    $submittedReport = '';
+				    ob_start();
 				    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['question_result_nonce']) && wp_verify_nonce($_POST['question_result_nonce'], 'question_result_form')) {
                         if (isset($_POST['user_name']) && isset($_POST['user_age'])) {
                             // Sanitize and retrieve form data
@@ -41,17 +41,26 @@
                             $page4_question10 = sanitize_text_field($_POST['page4_question10']);
                             $page4_question11 = sanitize_text_field($_POST['page4_question11']);
 //                            $symptoms_data = $_POST['symptoms_list'];
-                             $symptoms_data = array();
+                             $symptoms_data = $_POST['symptoms_list'];
                             // Process symptoms data
+                            $grouped_symptoms_data = array();
+                             if (!empty($symptoms_data)) {
 
-                             if (!empty($_POST['symptoms_list'])) {
-                                 foreach ($_POST['symptoms_list'] as $name => $value) {
-                                     $symptoms_data[] = array(
-                                         'symptom_name' => ucwords(str_replace('-', ' ', $name)),
-                                         'symptom_value' => $value
-                                     );
+
+                                 foreach ($symptoms_data as $group_name => $symptoms) {
+                                     $grouped_symptoms = array("symptom_title" => ucfirst(str_replace('-', ' ', $group_name)), "symptom_content" => array());
+
+                                     foreach ($symptoms as $symptom_name => $symptom_value) {
+                                         $grouped_symptoms["symptom_content"][] = array(
+                                             "symptom_name" => ucfirst(str_replace('-', ' ', $symptom_name)),
+                                             "symptom_value" => $symptom_value
+                                         );
+                                     }
+
+                                     $grouped_symptoms_data[] = $grouped_symptoms;
                                  }
                              }
+
                             // Create a new post in the "Question Result" post type
                             $post_data = array(
                                 'post_title'    => $user_name . ' - ' . $user_age,
@@ -80,13 +89,27 @@
                                 update_field('page4_question11', $page4_question11, $post_id);
                                 update_field('preferred_time', $preferred_time, $post_id);
 
-                                // Save symptoms data as a serialized array or individual fields
-                                update_field('symptoms_data', $symptoms_data, $post_id);
+                                if (have_rows('symptoms_data', $post_id)) {
+                                    // Clear existing data
+                                    delete_field('symptoms_data', $post_id);
+                                }
+                                //update_field('symptoms_data', $symptoms_data, $post_id);
+                                foreach ($grouped_symptoms_data as $group) {
+                                    $row_index = add_row('symptoms_data', array(
+                                        'symptom_title' => $group['symptom_title'],
+                                    ), $post_id);
+
+                                    // Loop through the symptom_content array
+                                    foreach ($group['symptom_content'] as $symptom) {
+                                        add_sub_row(array('symptoms_data', $row_index, 'symptom_content'), array(
+                                            'symptom_name' => $symptom['symptom_name'],
+                                            'symptom_value' => $symptom['symptom_value'],
+                                        ), $post_id);
+                                    }
+                                }
+
                                 // Redirect to the same page without the form data
-                                echo "<div class='submitted-report'>
-                                    <p>The Question Result was successfully saved.</p>
-                                    <a href='/'>Back to homepage</a>
-                                </div>";
+                                echo '<script type="text/javascript">window.location.href = "' . home_url('/thank-you-quiz') . '";</script>';
                                 exit;
                             } else {
                                 // Handle errors
@@ -94,13 +117,7 @@
                             }
                         }
                     }
-                    ?>
-                    <?php
-                        // Check if the form has been submitted and redirect happened
-                        if (isset($_GET['submitted']) && $_GET['submitted'] == 'true') {
-                            echo '<p>Your form has been submitted successfully!</p>';
-                            // Here you can display a success message or handle further logic
-                        }
+                    ob_flush();
                     ?>
 					<form action="" method="post">
 					    <?php wp_nonce_field('question_result_form', 'question_result_nonce'); ?>
@@ -108,30 +125,34 @@
 							<h1 class="cnt-title cnt-title--blue align-center">Getting to know you</h1>
 							<div class="questionnaire-progress is-step-1">
 								<div class="questionnaire-progress__labels" id="questionnaire-start">
-									<span data-step='1' class="questionnaire-progress__label question-step is-highlighted">Your details</span>
-									<span data-step='2' class="questionnaire-progress__label question-step">Your Menstrual</span>
-									<span data-step='3' class="questionnaire-progress__label question-step">Your symptoms</span>
+									<span data-step='1' class="questionnaire-progress__label question-step is-highlighted">Details</span>
+									<span data-step='2' class="questionnaire-progress__label question-step">Menstrual</span>
+									<span data-step='3' class="questionnaire-progress__label question-step">Symptoms</span>
 									<span data-step='4' class="questionnaire-progress__label question-step">Personal History</span>
-									<span data-step='5' class="questionnaire-progress__label question-step">Your Details</span>
+									<span data-step='5' class="questionnaire-progress__label question-step">Contact</span>
 								</div>
 							</div>
-							<h2 id="percentLabel" class="questionnaire-progress__title mb-sm"><span class="percent-label">0% complete</span></h2>
+							<h2 id="percentLabel" class="questionnaire-progress__title mb-sm"></h2>
 							<div class="questionnaire-progress__bar">
 								<div id="progressBar" class="questionnaire-progress__bar__current percent-indicator"></div>
 							</div>
 							<div id="questionnaire_1" class="questionnaire-section section-one current">
 								<div class="question-wrapper">
+								    <?php
+								        $question1 = get_field('question1', 'option');
+								        $question2 = get_field('question2', 'option');
+								    ?>
 									<div class="form-row">
-										<label>Q1. What is your name?</label>
-										<input class="form-field-text" type="text" name="user_name" id="user_name" value="">
+										<label class="question-title"><?= $question1;?></label>
+										<input class="form-field-text" type="text" name="user_name" id="user_name" value="" autocomplete="off"/>
 									</div>
 									<div class="form-row">
-										<label>Q2. How old are you?</label>
-										<input class="form-field-text" type="number" name="user_age" id="user_age" value="">
+										<label class="question-title"><?= $question2;?></label>
+										<input class="form-field-text" maxlength="3" type="number" name="user_age" id="user_age" value=""/>
 									</div>
 									<div class="questionnaire-actions">
 										<div class="middle-actions">
-											<button data-progress="16" data-next-tab="2" class="disable btn btn--lg btn--orange questionnaire-continue">Next</button>
+											<button data-progress="20" data-next-tab="2" class="disable btn btn--lg btn--orange questionnaire-continue">Next</button>
 										</div>
 									</div>
 								</div>
@@ -145,7 +166,6 @@
 								<div class="question-wrapper">
 									<div id="questionnaire_21" class="questionnaire-children showing">
 										<div class="std-content align-center">
-											<h2>Your Menstrual History</h2>
 											<p>The timing of your last period, <span class="fill-username" id="fillUserName"></span>, helps us to determine which stage of the menopausal transition you are in: premenopause, perimenopause or postmenopause.It's possible that more than one category might apply to your situation; simply choose the one that fits best.</p>
 										</div>
 										<hr /> <?php
@@ -153,16 +173,19 @@
                                     foreach( $question3 as $key=>$question ) {
                                     ?> <div data-question="3" class="question-item display">
 											<div class="std-content">
-												<h5><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
-											</div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-												<div class="form-check">
-													<input data-question="3" data-answer="3<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question3<?=$index;?>" type="radio" name="page2_question3">
-													<label class="form-check-label" for="question3<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-												</div>
-											</div> <?php $index++; } ?>
+												<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
+											</div>
+											<div class="form-group">
+											    <?php
+                                                   $index = 1;
+                                                   $getAnswers = $question['answers'];
+                                                   foreach( $getAnswers as $key=>$field ) {?>
+                                                        <div class="form-check">
+                                                            <input data-question="3" data-answer="3<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question3<?=$index;?>" type="radio" name="page2_question3">
+                                                            <label class="form-check-label" for="question3<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                        </div>
+                                                <?php $index++; } ?>
+											</div>
 										</div> <?php
                                     }
                                     ?> <?php
@@ -170,44 +193,49 @@
                                     foreach( $question4 as $key=>$question ) {
                                     ?> <div data-question="4" class="question-item">
 											<div class="std-content">
-												<h5><?=$question['question_title']; ?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
-											</div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-												<div class="form-check">
-													<input data-question="4" data-answer="4<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question4<?=$index;?>" type="radio" name="page2_question4">
-													<label class="form-check-label" for="question4<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-												</div>
-											</div> <?php $index++; } ?>
+												<h5 class="question-title"><?=$question['question_title']; ?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
+											</div>
+											<div class="form-group">
+											<?php
+                                               $index = 1;
+                                               $getAnswers = $question['answers'];
+                                               foreach( $getAnswers as $key=>$field ) {?>
+                                                <div class="form-check">
+                                                    <input data-question="4" data-answer="4<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question4<?=$index;?>" type="radio" name="page2_question4">
+                                                    <label class="form-check-label" for="question4<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                </div>
+                                            <?php $index++; } ?>
+											</div>
 										</div> <?php
                                     }
                                     ?> <div class="questionnaire-actions">
 											<div class="middle-actions">
 												<button data-back-tab="1" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-												<button data-progress="64" data-next-tab="5" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
+												<button data-progress="40" data-next-tab="3" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
 											</div>
 										</div>
 									</div>
 									<div id="questionnaire_22" class="questionnaire-children">
 										<div class="std-content align-center">
-											<h2>Your Menstrual History</h2>
 											<p>Hormonal contraception can stop your periods thereby masking your true menopausal status, so it’s important we understand your current contraceptive medication so you can receive an accurate diagnosis. </p>
 										</div> <?php
                                     $question5 = get_field('question5', 'option');
                                     foreach( $question5 as $key=>$question ) {
                                     ?> <div data-question="5" class="question-item display">
 											<div class="std-content">
-												<h5><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
-											</div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-												<div class="form-check">
-													<input data-question="5" data-answer="5<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question5<?=$index;?>" type="radio" name="page3_question5">
-													<label class="form-check-label" for="question5<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-												</div>
-											</div> <?php $index++; } ?>
+												<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
+											</div>
+											<div class="form-group">
+											<?php
+                                               $index = 1;
+                                               $getAnswers = $question['answers'];
+                                               foreach( $getAnswers as $key=>$field ) {?>
+                                                        <div class="form-check">
+                                                            <input data-question="5" data-answer="5<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question5<?=$index;?>" type="radio" name="page3_question5">
+                                                            <label class="form-check-label" for="question5<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                        </div>
+                                            <?php $index++; } ?>
+                                            </div>
 										</div> <?php
                                     }
                                     ?> <?php
@@ -215,16 +243,19 @@
                                     foreach( $question6 as $key=>$question ) {
                                     ?> <div data-question="6" class="question-item">
 											<div class="std-content">
-												<h5><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
-											</div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-												<div class="form-check">
-													<input data-question="6" data-answer="6<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question6<?=$index;?>" type="radio" name="page3_question6">
-													<label class="form-check-label" for="question6<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-												</div>
-											</div> <?php $index++; } ?>
+												<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
+											</div>
+											<div class="form-group">
+											<?php
+                                               $index = 1;
+                                               $getAnswers = $question['answers'];
+                                               foreach( $getAnswers as $key=>$field ) {?>
+                                                        <div class="form-check">
+                                                            <input data-question="6" data-answer="6<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question6<?=$index;?>" type="radio" name="page3_question6">
+                                                            <label class="form-check-label" for="question6<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                        </div>
+                                                <?php $index++; } ?>
+                                            </div>
 										</div> <?php
                                     }
                                     ?> <?php
@@ -232,16 +263,19 @@
                                     foreach( $question7 as $key=>$question ) {
                                     ?> <div data-question="7" class="question-item">
 											<div class="std-content">
-												<h5><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
-											</div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-												<div class="form-check">
-													<input data-question="7" data-answer="7<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question7<?=$index;?>" type="radio" name="page3_question7">
-													<label class="form-check-label" for="question7<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-												</div>
-											</div> <?php $index++; } ?>
+												<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
+											</div>
+											<div class="form-group">
+											<?php
+                                               $index = 1;
+                                               $getAnswers = $question['answers'];
+                                               foreach( $getAnswers as $key=>$field ) {?>
+                                                        <div class="form-check">
+                                                            <input data-question="7" data-answer="7<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question7<?=$index;?>" type="radio" name="page3_question7">
+                                                            <label class="form-check-label" for="question7<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                        </div>
+											<?php $index++; } ?>
+											</div>
 										</div> <?php
                                     }
                                     ?> <?php
@@ -249,35 +283,37 @@
                                     foreach( $question8 as $key=>$question ) {
                                     ?> <div data-question="8" class="question-item">
 											<div class="std-content">
-												<h5><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
-											</div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-												<div class="form-check">
-													<input data-question="8" data-answer="8<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question8<?=$index;?>" type="radio" name="page3_question8">
-													<label class="form-check-label" for="question8<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-												</div>
-											</div> <?php $index++; } ?>
+												<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
+											</div>
+											<div class="form-group">
+											<?php
+                                               $index = 1;
+                                               $getAnswers = $question['answers'];
+                                               foreach( $getAnswers as $key=>$field ) {?>
+                                                        <div class="form-check">
+                                                            <input data-question="8" data-answer="8<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question8<?=$index;?>" type="radio" name="page3_question8">
+                                                            <label class="form-check-label" for="question8<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                        </div>
+                                                <?php $index++; } ?>
+                                            </div>
 										</div> <?php
                                     }
                                     ?> <div class="questionnaire-actions">
 											<div class="middle-actions">
 												<button data-back-question-page="1" data-back-tab="2" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-												<button data-progress="64" data-next-tab="5" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
+												<button data-progress="40" data-next-tab="3" class="btn-hide btn btn--lg btn--orange has-result-next-tab">Next</button>
 											</div>
 										</div>
 									</div>
 								</div>
-								<div id="question-result"></div>
+								<div id="question-result" class="hidden"></div>
 							</div>
 							<div id="questionnaire_3" class="questionnaire-section section-three"> <?php
                               $your_symptoms = get_field('your_symptoms', 'option');
                               $symptoms_list= $your_symptoms[0]['symptoms_list'];
                               ?> <div class="question-wrapper">
 									<div class="std-content align-center">
-										<h2>Your Menstrual History</h2>
-										<p><?php echo $your_symptoms[0]['symptons_description'];?></p>
+										<?php echo $your_symptoms[0]['symptons_description'];?>
 									</div>
 									<div class="symptoms_list">
 										<div class="symptom_header">
@@ -298,7 +334,7 @@
 												<div class="column col1"><?=$symptom_row['symptom_item']?></div>
 												<div class="column col2">
 													<div class="middle">
-														<input class="answer-checkbox symptom-radio" value="Not at all" type="radio" name="symptoms_list[<?=sanitize_title($symptom['symptom_title'])?>][<?= sanitize_title($symptom_row['symptom_item']); ?>]">
+														<input checked class="answer-checkbox symptom-radio" value="Not at all" type="radio" name="symptoms_list[<?=sanitize_title($symptom['symptom_title'])?>][<?= sanitize_title($symptom_row['symptom_item']); ?>]">
 													</div>
 												</div>
 												<div class="column col3">
@@ -318,7 +354,7 @@
 												</div>
 											</div> <?php } ?>
 										</div> <?php } ?> <input id="symptoms-questions" type="hidden" name="symptoms-questions" value="<?php echo $symptom_questions; ?>">
-										<div class="symptoms-output">
+										<div class="symptoms-output hidden">
 											<div class="output-title">Report Output</div> <?php
                                        $index = 4;
                                        foreach($symptoms_list as $symptom) {
@@ -330,7 +366,7 @@
 									<div class="questionnaire-actions">
 										<div class="middle-actions">
 											<button data-back-tab="2" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-											<button id="submitButton"  data-progress="78" data-next-tab="4" class="btn-hide btn btn--lg btn--orange questionnaire4-next">Continue</button>
+											<button id="submitButton"  data-progress="60" data-next-tab="4" class="btn btn--lg btn--orange questionnaire4-next">Continue</button>
 										</div>
 									</div>
 								</div>
@@ -341,50 +377,61 @@
                                  foreach( $question9 as $key=>$question ) {
                                  ?> <div data-question="11" class="question-item display">
 										<div class="std-content">
-											<h5><?=$question['question_title']?></h5>
+											<h5 class="question-title"><?=$question['question_title']?></h5>
 											<i class="tooltip"><?php echo $question['tooltip'];?></i>
-										</div> <?php
-                                    $index = 1;
-                                    $getAnswers = $question['answers'];
-                                    foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-											<div class="form-check">
-												<input data-question="9" data-answer="9<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question9<?=$index;?>" type="checkbox" name="page4_question9">
-												<label class="form-check-label" for="question9<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-											</div>
-										</div> <?php $index++; } ?>
-									</div> <?php $index++; } ?> <div id="result-question9" class="mb-20"></div> <?php
+										</div>
+										<div class="form-group">
+										<?php
+                                        $index = 1;
+                                        $getAnswers = $question['answers'];
+                                        foreach( $getAnswers as $key=>$field ) {?>
+                                                <div class="form-check">
+                                                    <input data-question="9" data-answer="9<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question9<?=$index;?>" type="checkbox" name="page4_question9">
+                                                    <label class="form-check-label" for="question9<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                </div>
+										<?php $index++; } ?>
+										</div>
+									</div> <?php $index++; } ?> <div id="result-question9" class="hidden"></div>
+
+								<?php
                                  $question10 = get_field('question10', 'option');
                                  foreach( $question10 as $key=>$question ) {
                                  ?> <div data-question="10" class="question-item display">
 										<div class="std-content">
-											<h5><?=$question['question_title']?></h5>
+											<h5 class="question-title"><?=$question['question_title']?></h5>
 											<i class="tooltip"><?php echo $question['tooltip'];?></i>
-										</div> <?php
-                                    $index = 1;
-                                    $getAnswers = $question['answers'];
-                                    foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-											<div class="form-check">
-												<input data-question="10" data-answer="10<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question10<?=$index;?>" type="checkbox" name="page4_question10">
-												<label class="form-check-label" for="question10<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-											</div>
-										</div> <?php $index++; } ?>
-									</div> <?php $index++; } ?> <div id="result-question10"></div>
+										</div>
+										<div class="form-group">
+										<?php
+                                        $index = 1;
+                                        $getAnswers = $question['answers'];
+                                        foreach( $getAnswers as $key=>$field ) {?>
+                                                <div class="form-check">
+                                                    <input data-question="10" data-answer="10<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question10<?=$index;?>" type="checkbox" name="page4_question10">
+                                                    <label class="form-check-label" for="question10<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                </div>
+										<?php $index++; } ?>
+										</div>
+									</div> <?php $index++; } ?> <div id="result-question10" class="hidden"></div>
 
 									<?php
                                     $question11 = get_field('question11', 'option');
                                     foreach( $question11 as $key=>$question ) {
                                     ?> <div data-question="11" class="question-item display">
                                             <div class="std-content">
-                                                <h5><?=$question['question_title']?> </h5>
-                                            </div> <?php
-                                       $index = 1;
-                                       $getAnswers = $question['answers'];
-                                       foreach( $getAnswers as $key=>$field ) {?> <div class="form-row">
-                                                <div class="form-check">
-                                                    <input data-question="11" data-answer="11<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question11<?=$index;?>" type="radio" name="page4_question11">
-                                                    <label class="form-check-label" for="question11<?=$index;?>"> <?= $field['answer_option']; ?> </label>
-                                                </div>
-                                            </div> <?php $index++; } ?>
+                                                <h5 class="question-title"><?=$question['question_title']?> </h5>
+                                            </div>
+                                            <div class="form-group">
+                                            <?php
+                                               $index = 1;
+                                               $getAnswers = $question['answers'];
+                                               foreach( $getAnswers as $key=>$field ) {?>
+                                                        <div class="form-check">
+                                                            <input data-question="11" data-answer="11<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question11<?=$index;?>" type="radio" name="page4_question11">
+                                                            <label class="form-check-label" for="question11<?=$index;?>"> <?= $field['answer_option']; ?> </label>
+                                                        </div>
+                                            <?php $index++; } ?>
+                                            </div>
                                         </div> <?php
                                     }
                                     ?>
@@ -392,7 +439,7 @@
 								<div class="questionnaire-actions">
 									<div class="middle-actions">
 										<button data-back-tab="3" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
-										<button data-has-result-tab="1" data-progress="85" data-next-tab="5" class="btn-hide btn btn--lg btn--orange questionnaire-next has-result-next-tab">Continue</button>
+										<button data-has-result-tab="1" data-progress="80" data-next-tab="5" class="btn-hide btn btn--lg btn--orange questionnaire-next has-result-next-tab">Continue</button>
 									</div>
 								</div>
 							</div>
@@ -476,13 +523,23 @@
 			var hasResultAtStep = 0;
 
 			function checkUserAndAge() {
-				if($('#user_name').val() != '' && $('#user_age').val() != '') {
-					$('.questionnaire-continue').removeClass('disable')
-				} else {
-					$('.questionnaire-continue').addClass('disable')
-				}
+			    let isValidJUserNameAndAge = true;
+			    var tab1UserName = $('#user_name').val();
+			    var tab1UserAge = $('#user_age').val();
+			    if (tab1UserName === "") {
+			        isValidJUserNameAndAge = false;
+			    }
+			    if (tab1UserAge === "" || tab1UserAge == 0 || tab1UserAge.length > 3) {
+                    isValidJUserNameAndAge = false;
+                }
+
+                if (isValidJUserNameAndAge) {
+                    $('.questionnaire-continue').removeClass('disable')
+                } else {
+                    $('.questionnaire-continue').addClass('disable')
+                }
 			}
-			$('#user_name, #user_age').change(function() {
+			$('#user_name, #user_age').on('input', function() {
 				checkUserAndAge();
 			});
 			// Handle next button
@@ -493,7 +550,6 @@
 				var dataProgress = $(this).data('progress');
 				clsQuestionnaireSection.removeClass('current');
 				progressBar.width(dataProgress + '%');
-				percentLabel.text(dataProgress + '% complete');
 				var moveNextQuestion = $('#questionnaire_' + dataNextQuestion);
 				moveNextQuestion.addClass('current');
 				var questionStep = questionnaireStart.find('.question-step');
@@ -544,26 +600,28 @@
 								$('#question-result').html('Output: ' + resultQ4[answer]);
 								$('.has-result-next-tab').removeClass('btn-hide')
 							}
-						}
-						//Case 1: Above 58
-						if(userAge > 58 || answer == 43) {
-							$('#questionnaire_22').removeClass('showing')
-							$('#question-result').html('Output: ' + result4);
-							$('.has-result-next-tab').removeClass('btn-hide')
-							hasResultAtStep = 2;
 						} else {
-							$('.questionnaire-children').removeClass('showing')
-							$('#questionnaire_22').addClass('showing');
-							$('.has-result-next-tab').addClass('btn-hide')
-							$('.question-item[data-question="6"]').removeClass('display')
-							$('.question-item[data-question="7"]').removeClass('display')
-							$('.question-item[data-question="8"]').removeClass('display')
-                            $('.question-item[data-question="5"] input[type="radio"]').prop('checked', false);
-                            $('.question-item[data-question="6"] input[type="radio"]').prop('checked', false);
-                            $('.question-item[data-question="7"] input[type="radio"]').prop('checked', false);
-							$('#question-result').html('')
-							hasResultAtStep = 0;
+						    //Case 1: Above 58
+                            if(userAge > 58 || answer == 43) {
+                                $('#questionnaire_22').removeClass('showing')
+                                $('#question-result').html('Output: ' + result4);
+                                $('.has-result-next-tab').removeClass('btn-hide')
+                                hasResultAtStep = 2;
+                            } else {
+                                $('.questionnaire-children').removeClass('showing')
+                                $('#questionnaire_22').addClass('showing');
+                                $('.has-result-next-tab').addClass('btn-hide')
+                                $('.question-item[data-question="6"]').removeClass('display')
+                                $('.question-item[data-question="7"]').removeClass('display')
+                                $('.question-item[data-question="8"]').removeClass('display')
+                                $('.question-item[data-question="5"] input[type="radio"]').prop('checked', false);
+                                $('.question-item[data-question="6"] input[type="radio"]').prop('checked', false);
+                                $('.question-item[data-question="7"] input[type="radio"]').prop('checked', false);
+                                $('#question-result').html('')
+                                hasResultAtStep = 0;
+                            }
 						}
+
 					}
 					if(currentQuestion == 5) {
 						$('.has-result-next-tab').addClass('btn-hide')
@@ -638,8 +696,6 @@
 			$('.questionnaire-actions .questionnaire-back').click(function(e) {
 				e.preventDefault();
 				var backTab = $(this).data('back-tab');
-
-
                 if(backTab == 1) {
                     clsQuestionnaireSection.removeClass('current');
                     $('#questionnaire_1').addClass('current');
@@ -647,6 +703,9 @@
                     $('.question-item[data-question="3"]').addClass('display');
                     $('.question-item[data-question="5"]').addClass('display');
                     $('.question-item input[type="radio"]').prop('checked', false);
+                    var questionStep = questionnaireStart.find('.question-step');
+                    $(questionStep).removeClass('is-highlighted')
+                    $('.question-step[data-step="1"]').addClass('is-highlighted')
                     $('#question-result').html('')
                 } else if(backTab == 2) {
                        clsQuestionnaireSection.removeClass('current');
@@ -737,14 +796,38 @@
 			$('.symptom-group input[type="radio"]').on('change', function() {
 				checkAllGroups();
 			})
-			$('.symptom-group .symptom-radio').on('change', function() {
-                validateSymptomForm();
-            })
+// 			$('.symptom-group .symptom-radio').on('change', function() {
+//                 validateSymptomForm();
+//             })
 
-			validateSymptomForm();
+			//validateSymptomForm();
 			checkAllGroups();
 
+			function validatePersonalHistory() {
+                let allAnswered = true;
+                // Loop through each question-item and check if at least one input is checked
+                $('.section-four .question-item').each(function() {
+                    let questionAnswered = $(this).find('input[type="checkbox"]:checked').length > 0 ||
+                                           $(this).find('input[type="radio"]:checked').length > 0;
+                    if (!questionAnswered) {
+                        allAnswered = false;
+                        return false; // Exit loop early if a question is not answered
+                    }
+                });
+
+                // Enable or disable the Continue button based on validation
+                $('.questionnaire-next').prop('disabled', !allAnswered);
+            }
+
+            validatePersonalHistory();
+            $('input[type="checkbox"], input[type="radio"]').on('change', function() {
+                validatePersonalHistory();
+            });
+
 			$('[data-toggle="tooltip"]').tooltip()
+
+
+
 		});
 	});
 	</script>
