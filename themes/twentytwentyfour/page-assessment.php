@@ -156,13 +156,8 @@
 										</div>
 									</div>
 								</div>
-							</div> <?php
-                           $results = get_field('results', 'option');
-                           foreach( $results as $key=>$result ) {
-                           $ind = $key+1;
-                           ?> <input id="result<?=$ind?>" type="hidden" name="result" value="<?php echo $result['output']; ?>"> <?php
-                           }
-                           ?> <div id="questionnaire_2" class="questionnaire-section section-two">
+							</div>
+							<div id="questionnaire_2" class="questionnaire-section section-two">
 								<div class="question-wrapper">
 									<div id="questionnaire_21" class="questionnaire-children showing">
 										<div class="std-content align-center">
@@ -306,7 +301,7 @@
 										</div>
 									</div>
 								</div>
-								<div id="question-result" class="hidden"></div>
+								<input id="menopause-assessment-result" type="hidden" name="result" value=""/>
 							</div>
 							<div id="questionnaire_3" class="questionnaire-section section-three"> <?php
                               $your_symptoms = get_field('your_symptoms', 'option');
@@ -324,10 +319,12 @@
 											<div class="column col5">Extremely</div>
 										</div> <?php
                                     $symptom_questions = 0;
+                                    $output_index = 5;
                                     foreach($symptoms_list as $symptom) {
+                                       $output_index++;
                                        $symptom_content = $symptom['symptom_content'];
                                        $symptom_questions += count($symptom_content);
-                                    ?> <div class="symptom-item symptom-group" data-group="<?= sanitize_title($symptom['symptom_title']); ?>">
+                                    ?> <div class="symptom-item symptom-group"  data-output="menopause_assessment_output_<?=$output_index?>"  data-group="<?= sanitize_title($symptom['symptom_title']); ?>">
 											<div class="symptom-title"> <?php echo $symptom['symptom_title'];?> </div> <?php
                                        foreach($symptom_content as $symptom_row) {
                                        ?> <div class="symptom-row">
@@ -353,15 +350,12 @@
 													</div>
 												</div>
 											</div> <?php } ?>
-										</div> <?php } ?> <input id="symptoms-questions" type="hidden" name="symptoms-questions" value="<?php echo $symptom_questions; ?>">
-										<div class="symptoms-output hidden">
-											<div class="output-title">Report Output</div> <?php
-                                       $index = 4;
-                                       foreach($symptoms_list as $symptom) {
-                                       $index++;
-                                       ?> <div class="symptom-result-list" id="<?=sanitize_title($symptom['symptom_title']);?>"> <?php echo $symptom['symptom_title'];?>: <span><?=$results[$index]['output'];?></span>
-											</div> <?php } ?>
-										</div>
+										</div> <?php } ?>
+										<?php
+                                           foreach($symptoms_list as $symptom) {
+                                           ?>
+                                                <input id="<?=sanitize_title($symptom['symptom_title']);?>" type="hidden" name="result" value=""/>
+                                            <?php } ?>
 									</div>
 									<div class="questionnaire-actions">
 										<div class="middle-actions">
@@ -391,7 +385,7 @@
                                                 </div>
 										<?php $index++; } ?>
 										</div>
-									</div> <?php $index++; } ?> <div id="result-question9" class="hidden"></div>
+									</div> <?php $index++; } ?>
 
 								<?php
                                  $question10 = get_field('question10', 'option');
@@ -412,7 +406,7 @@
                                                 </div>
 										<?php $index++; } ?>
 										</div>
-									</div> <?php $index++; } ?> <div id="result-question10" class="hidden"></div>
+									</div> <?php $index++; } ?>
 
 									<?php
                                     $question11 = get_field('question11', 'option');
@@ -436,6 +430,8 @@
                                     }
                                     ?>
 								</div>
+								<input id="menopause-assessment-result-q9" type="hidden" name="result" value=""/>
+								<input id="menopause-assessment-result-q10" type="hidden" name="result" value=""/>
 								<div class="questionnaire-actions">
 									<div class="middle-actions">
 										<button data-back-tab="3" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
@@ -570,18 +566,20 @@
 					if(currentQuestion == 3) {
 						// handle question 3
 						var resultQ3 = {
-							31: result2,
-							32: result3,
+							31: 'menopause_assessment_output_2',
+							32: 'menopause_assessment_output_3',
 						}
 						if(resultQ3[answer] != undefined) {
 						    hasResultAtStep = 2;
-							$('#question-result').html('Output: ' + resultQ3[answer]);
+							//$('#question-result').html('Output: ' + resultQ3[answer]);
+							$('#menopause-assessment-result').val(resultQ3[answer]);
 							$('.question-item[data-question="4"]').removeClass('display')
 							$('.has-result-next-tab').removeClass('btn-hide')
 						}
 						if(answer == 33) {
 						    hasResultAtStep = 0;
-							$('#question-result').html('')
+							//$('#question-result').html('')
+							$('#menopause-assessment-result').val('');
 							$('.has-result-next-tab').addClass('btn-hide')
 							$('.question-item[data-question="4"]').addClass('display')
 						}
@@ -591,20 +589,22 @@
 						//Case 1: Below 40
 						if(userAge <= 40) {
 							var resultQ4 = {
-								41: result1,
-								42: result1,
-								43: result4
+								41: 'menopause_assessment_output_1',
+								42: 'menopause_assessment_output_1',
+								43: 'menopause_assessment_output_4'
 							}
 							if(resultQ4[answer] != undefined) {
 							    hasResultAtStep = 2;
-								$('#question-result').html('Output: ' + resultQ4[answer]);
+								//$('#question-result').html('Output: ' + resultQ4[answer]);
+								$('#menopause-assessment-result').val(resultQ4[answer]);
 								$('.has-result-next-tab').removeClass('btn-hide')
 							}
 						} else {
 						    //Case 1: Above 58
                             if(userAge > 58 || answer == 43) {
                                 $('#questionnaire_22').removeClass('showing')
-                                $('#question-result').html('Output: ' + result4);
+                                //$('#question-result').html('Output: ' + result4);
+                                $('#menopause-assessment-result').val('menopause_assessment_output_4');
                                 $('.has-result-next-tab').removeClass('btn-hide')
                                 hasResultAtStep = 2;
                             } else {
@@ -617,7 +617,8 @@
                                 $('.question-item[data-question="5"] input[type="radio"]').prop('checked', false);
                                 $('.question-item[data-question="6"] input[type="radio"]').prop('checked', false);
                                 $('.question-item[data-question="7"] input[type="radio"]').prop('checked', false);
-                                $('#question-result').html('')
+                                //$('#question-result').html('')
+                                $('#menopause-assessment-result').val('');
                                 hasResultAtStep = 0;
                             }
 						}
@@ -644,23 +645,27 @@
 						$('.question-item[data-question="7"]').removeClass('display')
 						$('.question-item[data-question="8"]').removeClass('display')
 						if(answer == 61) {
-							$('#question-result').html('Output: ' + result5);
+							//$('#question-result').html('Output: ' + result5);
+							$('#menopause-assessment-result').val('menopause_assessment_output_5');
 							hasResultAtStep = 2;
 						} else if(answer == 62) {
-							$('#question-result').html('Output: ' + result2);
+							//$('#question-result').html('Output: ' + result2);
+							$('#menopause-assessment-result').val('menopause_assessment_output_2');
 							hasResultAtStep = 2;
 						}
 					}
 					if(currentQuestion == 7) {
 						if(answer == 71) {
-							$('#question-result').html('')
+							//$('#question-result').html('')
+							$('#menopause-assessment-result').val('');
 							$('.has-result-next-tab').addClass('btn-hide')
 							$('.question-item[data-question="8"]').addClass('display')
 							hasResultAtStep = 0;
 						} else if(answer == 72) {
 							$('.has-result-next-tab').removeClass('btn-hide')
 							$('.question-item[data-question="8"]').removeClass('display')
-							$('#question-result').html('Output: ' + result4);
+							//$('#question-result').html('Output: ' + result4);
+							$('#menopause-assessment-result').val('menopause_assessment_output_4');
 							hasResultAtStep = 2;
 						}
 					}
@@ -668,26 +673,32 @@
 						$('.has-result-next-tab').removeClass('btn-hide')
 						hasResultAtStep = 2;
 						if(answer == 81) {
-							$('#question-result').html('Output: ' + result2);
+							//$('#question-result').html('Output: ' + result2);
+							$('#menopause-assessment-result').val('menopause_assessment_output_2');
 						} else if(answer == 82) {
-							$('#question-result').html('Output: ' + result5);
+							//$('#question-result').html('Output: ' + result5);
+							$('#menopause-assessment-result').val('menopause_assessment_output_5');
 						} else if(answer == 83) {
 							if(userAge >= 52) {
-								$('#question-result').html('Output: ' + result4);
+								//$('#question-result').html('Output: ' + result4);
+								$('#menopause-assessment-result').val('menopause_assessment_output_4');
 							} else {
-								$('#question-result').html('Output: ' + result5);
+								//$('#question-result').html('Output: ' + result5);
+								$('#menopause-assessment-result').val('menopause_assessment_output_5');
 							}
 						}
 					}
 				});
 			});
-			$('.question-item').each(function() {
+			$('.section-four .question-item').each(function() {
 				$(this).find('.form-check input[type="checkbox"]').change(function() {
 					var currentQ = $(this).data('question');
 					if(currentQ == 9) {
-						$('#result-question9').html('Output: ' + result10);
+						//$('#result-question9').html('Output: ' + result10);
+						$('#menopause-assessment-result-q9').val('menopause_assessment_output_10')
 					} else if(currentQ == 10) {
-						$('#result-question10').html('Output: ' + result11);
+						//$('#result-question10').html('Output: ' + result11);
+						$('#menopause-assessment-result-q10').val('menopause_assessment_output_11')
 					}
 				})
 			})
@@ -776,13 +787,14 @@
 				// Do something if a match is found
 				if(selected) {
 					var groupName = $(group).data('group');
+					var groupOutput = $(group).data('output');
 					$('.symptoms-output').show();
-					$('#' + groupName).show();
+					$('#' + groupName).val(groupOutput);
 					//console.log(groupName + ': Quite a bit or Extremely is selected');
 					// You can perform any action here
 				} else {
 					var groupName = $(group).data('group');
-					$('#' + groupName).hide();
+					$('#' + groupName).val('');
 					//console.log(groupName + ': Neither Quite a bit nor Extremely is selected');
 				}
 			}

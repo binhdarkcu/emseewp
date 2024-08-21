@@ -210,8 +210,13 @@ if( function_exists('acf_add_options_page') ) {
 	acf_add_options_page(array(
 		'page_title'  => 'Questions',
 		'menu_title' => 'Questions',
-		'menu_slug'  => 'theme-general-settings'
+		'menu_slug'  => 'questions-settings'
 	));
+	acf_add_options_page(array(
+        'page_title'  => 'Menopause Assessment',
+        'menu_title' => 'Menopause Assessment',
+        'menu_slug'  => 'menopause-assessment-settings'
+    ));
 }
 
 add_filter('manage_questions-result_posts_columns', 'add_questions_result_custom_columns');
