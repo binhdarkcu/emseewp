@@ -239,6 +239,7 @@ body {
   padding: 10px 0;
 }
 
+
 .symptoms_list .symptom-item .symptom-row {
   border-top: 1px solid #ccc;
   padding: 10px 0;
@@ -332,6 +333,12 @@ body {
 
 .hidden {
   display: none;
+}
+
+.required-label {
+  color: red;
+  font-weight: 700;
+  display: inline-block;
 }
 
 @media screen and (min-width: 0) and (max-width: 992px) {

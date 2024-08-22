@@ -21,103 +21,86 @@
 			<div class="container">
 				<div class="content">
 				    <?php
-				    ob_start();
+				    function send_custom_email($to, $subject, $data) {
+                        // Load the email template
+                        ob_start();
+                        include 'emails/assessment-template.php';
+                        $template = ob_get_contents();
+                        ob_end_clean();
+
+                        // Replace placeholders in the template with actual data
+                        $template = str_replace('{user_name}', $data['user_name'], $template);
+                        $template = str_replace('{email}', $data['email'], $template);
+                        $template = str_replace('{output_report_1_5}', $data['output_report_1_5'], $template);
+                        $template = str_replace('{output_report_6}', $data['output_report_6'], $template);
+                        $template = str_replace('{output_report_7}', $data['output_report_7'], $template);
+                        $template = str_replace('{output_report_8}', $data['output_report_8'], $template);
+                        $template = str_replace('{output_report_9}', $data['output_report_9'], $template);
+                        $template = str_replace('{output_report_10}', $data['output_report_10'], $template);
+                        $template = str_replace('{output_report_11}', $data['output_report_11'], $template);
+
+                        // Set the headers to send HTML email
+                        $headers = array('Content-Type: text/html; charset=UTF-8');
+
+                        // Send the email
+                        $mail_sent = wp_mail($to, $subject, $template, $headers);
+                        if ($mail_sent) {
+                            // Redirect to the desired page
+                            echo '<script type="text/javascript">window.location.href = "' . home_url('/thank-you-quiz') . '";</script>';
+                            exit;
+                        } else {
+                            // Handle error if needed
+                            echo "There was an error saving the Question Result.";
+                            exit;
+                        }
+                    }
+
 				    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['question_result_nonce']) && wp_verify_nonce($_POST['question_result_nonce'], 'question_result_form')) {
                         if (isset($_POST['user_name']) && isset($_POST['user_age'])) {
                             // Sanitize and retrieve form data
                             $user_name = sanitize_text_field($_POST['user_name']);
-                            $user_age = intval($_POST['user_age']);
                             $user_email = sanitize_email($_POST['user_email']);
-                            $user_state = sanitize_text_field($_POST['user_state']);
-                            $user_phone = sanitize_text_field($_POST['user_phone']);
-                            $preferred_time = sanitize_text_field($_POST['preferred_time']);
-                            $page2_question3 = sanitize_text_field($_POST['page2_question3']);
-                            $page2_question4 = sanitize_text_field($_POST['page2_question4']);
-                            $page3_question5 = sanitize_text_field($_POST['page3_question5']);
-                            $page3_question6 = sanitize_text_field($_POST['page3_question6']);
-                            $page3_question7 = sanitize_text_field($_POST['page3_question7']);
-                            $page3_question8 = sanitize_text_field($_POST['page3_question8']);
-                            $page4_question9 = sanitize_text_field($_POST['page4_question9']);
-                            $page4_question10 = sanitize_text_field($_POST['page4_question10']);
-                            $page4_question11 = sanitize_text_field($_POST['page4_question11']);
-//                            $symptoms_data = $_POST['symptoms_list'];
-                             $symptoms_data = $_POST['symptoms_list'];
-                            // Process symptoms data
-                            $grouped_symptoms_data = array();
-                             if (!empty($symptoms_data)) {
+                            // output 1->5
+                            $menstrual_result = $_POST['menopause-assessment-result'];
+                            // output 6->9
+                            $physical_symptoms_result = $_POST['physical-symptoms'];
+                            $moods_mental_health_result = $_POST['moods-mental-health'];
+                            $cognition_sleep_result = $_POST['cognition-sleep'];
+                            $genitourinary_sexual_result = $_POST['genitourinary-sexual'];
+                            // output 10->11
+                            $menstrual_result_q9 = $_POST['menopause-assessment-result-q9'];
+                            $menstrual_result_q10 = $_POST['menopause-assessment-result-q10'];
 
+                            // output_report_1_5
+                            $tab2_output_report = get_field($menstrual_result, 'option');
+                            // output_report_6_9
+                            $tab3_physical_output_report = get_field($physical_symptoms_result, 'option');
+                            $tab3_moods_mental_health_output_report = get_field($moods_mental_health_result, 'option');
+                            $tab3_cognition_sleep_output_report = get_field($cognition_sleep_result, 'option');
+                            $tab3_genitourinary_sexual_output_report = get_field($genitourinary_sexual_result, 'option');
+                            // output_report_10_11
+                            $tab4_output_report_q9 = get_field($menstrual_result_q9, 'option');
+                            $tab4_output_report_q10 = get_field($menstrual_result_q10, 'option');
 
-                                 foreach ($symptoms_data as $group_name => $symptoms) {
-                                     $grouped_symptoms = array("symptom_title" => ucfirst(str_replace('-', ' ', $group_name)), "symptom_content" => array());
+                            $has_report_6_to_9 = !empty($tab3_physical_output_report) || !empty($tab3_moods_mental_health_output_report) || !empty($tab3_cognition_sleep_output_report) || !empty($tab3_genitourinary_sexual_output_report);
 
-                                     foreach ($symptoms as $symptom_name => $symptom_value) {
-                                         $grouped_symptoms["symptom_content"][] = array(
-                                             "symptom_name" => ucfirst(str_replace('-', ' ', $symptom_name)),
-                                             "symptom_value" => $symptom_value
-                                         );
-                                     }
-
-                                     $grouped_symptoms_data[] = $grouped_symptoms;
-                                 }
-                             }
-
-                            // Create a new post in the "Question Result" post type
-                            $post_data = array(
-                                'post_title'    => $user_name . ' - ' . $user_age,
-                                'post_type'     => 'questions-result',
-                                'post_status'   => 'publish',
+                            $emails_data = array(
+                                'user_name' => $user_name,
+                                'email' => $user_email,
+                                'output_report_1_5' => !empty($tab2_output_report) ? $tab2_output_report . ($has_report_6_to_9 ? '<br/><b>AND</b>' : '') : '',
+                                'output_report_6' => !empty($tab3_physical_output_report) ? $tab3_physical_output_report.'<br/><br/>' : '',
+                                'output_report_7' => !empty($tab3_moods_mental_health_output_report) ? $tab3_moods_mental_health_output_report.'<br/><br/>' : '',
+                                'output_report_8' => !empty($tab3_cognition_sleep_output_report) ? $tab3_cognition_sleep_output_report.'<br/><br/>' : '',
+                                'output_report_9' => !empty($tab3_genitourinary_sexual_output_report) ? $tab3_genitourinary_sexual_output_report.'<br/><br/>' : '',
+                                'output_report_10' => !empty($output_report_10) ? ($has_report_6_to_9 ? '<br/><b>AND</b>' : '').$output_report_10 : '',
+                                'output_report_11' => $tab4_output_report_q10,
                             );
 
-                            $post_id = wp_insert_post($post_data);
+                            $subject = 'Your Personalised Menopause Health Report';
 
-                            // Check if the post was successfully created
-                            if ($post_id) {
-                                // Insert ACF fields
-                                update_field('user_name', $user_name, $post_id);
-                                update_field('user_age', $user_age, $post_id);
-                                update_field('user_email', $user_email, $post_id);
-                                update_field('user_state', $user_state, $post_id);
-                                update_field('user_phone', $user_phone, $post_id);
-                                update_field('page2_question3', $page2_question3, $post_id);
-                                update_field('page2_question4', $page2_question4, $post_id);
-                                update_field('page3_question5', $page3_question5, $post_id);
-                                update_field('page3_question6', $page3_question6, $post_id);
-                                update_field('page3_question7', $page3_question7, $post_id);
-                                update_field('page3_question8', $page3_question8, $post_id);
-                                update_field('page4_question9', $page4_question9, $post_id);
-                                update_field('page4_question10', $page4_question10, $post_id);
-                                update_field('page4_question11', $page4_question11, $post_id);
-                                update_field('preferred_time', $preferred_time, $post_id);
-
-                                if (have_rows('symptoms_data', $post_id)) {
-                                    // Clear existing data
-                                    delete_field('symptoms_data', $post_id);
-                                }
-                                //update_field('symptoms_data', $symptoms_data, $post_id);
-                                foreach ($grouped_symptoms_data as $group) {
-                                    $row_index = add_row('symptoms_data', array(
-                                        'symptom_title' => $group['symptom_title'],
-                                    ), $post_id);
-
-                                    // Loop through the symptom_content array
-                                    foreach ($group['symptom_content'] as $symptom) {
-                                        add_sub_row(array('symptoms_data', $row_index, 'symptom_content'), array(
-                                            'symptom_name' => $symptom['symptom_name'],
-                                            'symptom_value' => $symptom['symptom_value'],
-                                        ), $post_id);
-                                    }
-                                }
-
-                                // Redirect to the same page without the form data
-                                echo '<script type="text/javascript">window.location.href = "' . home_url('/thank-you-quiz') . '";</script>';
-                                exit;
-                            } else {
-                                // Handle errors
-                                echo "There was an error saving the Question Result.";
-                            }
+                            send_custom_email($user_email, $subject, $emails_data);
                         }
                     }
-                    ob_flush();
                     ?>
 					<form action="" method="post">
 					    <?php wp_nonce_field('question_result_form', 'question_result_nonce'); ?>
@@ -143,11 +126,11 @@
 								        $question2 = get_field('question2', 'option');
 								    ?>
 									<div class="form-row">
-										<label class="question-title"><?= $question1;?></label>
+										<label class="question-title"><?= $question1;?><span class="required-label"> *</span></label>
 										<input class="form-field-text" type="text" name="user_name" id="user_name" value="" autocomplete="off"/>
 									</div>
 									<div class="form-row">
-										<label class="question-title"><?= $question2;?></label>
+										<label class="question-title"><?= $question2;?><span class="required-label"> *</span></label>
 										<input class="form-field-text" maxlength="3" type="number" name="user_age" id="user_age" value=""/>
 									</div>
 									<div class="questionnaire-actions">
@@ -301,7 +284,7 @@
 										</div>
 									</div>
 								</div>
-								<input id="menopause-assessment-result" type="hidden" name="result" value=""/>
+								<input id="menopause-assessment-result" type="hidden" name="menopause-assessment-result" value=""/>
 							</div>
 							<div id="questionnaire_3" class="questionnaire-section section-three"> <?php
                               $your_symptoms = get_field('your_symptoms', 'option');
@@ -354,7 +337,7 @@
 										<?php
                                            foreach($symptoms_list as $symptom) {
                                            ?>
-                                                <input id="<?=sanitize_title($symptom['symptom_title']);?>" type="hidden" name="result" value=""/>
+                                                <input id="<?=sanitize_title($symptom['symptom_title']);?>" type="hidden" name="<?=sanitize_title($symptom['symptom_title']);?>" value=""/>
                                             <?php } ?>
 									</div>
 									<div class="questionnaire-actions">
@@ -368,6 +351,7 @@
 							<div id="questionnaire_4" class="questionnaire-section section-four">
 								<div class="question-wrapper"> <?php
                                  $question9 = get_field('question9', 'option');
+
                                  foreach( $question9 as $key=>$question ) {
                                  ?> <div data-question="11" class="question-item display">
 										<div class="std-content">
@@ -378,9 +362,15 @@
 										<?php
                                         $index = 1;
                                         $getAnswers = $question['answers'];
+                                        $question9Description = $question['question_description'];
+                                        ?>
+                                        <div class="question-description">
+                                            <?=$question9Description;?>
+                                        </div>
+                                        <?php
                                         foreach( $getAnswers as $key=>$field ) {?>
                                                 <div class="form-check">
-                                                    <input data-question="9" data-answer="9<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question9<?=$index;?>" type="checkbox" name="page4_question9">
+                                                    <input data-question="9" data-answer="9<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question9<?=$index;?>" type="radio" name="page4_question9">
                                                     <label class="form-check-label" for="question9<?=$index;?>"> <?= $field['answer_option']; ?> </label>
                                                 </div>
 										<?php $index++; } ?>
@@ -399,9 +389,15 @@
 										<?php
                                         $index = 1;
                                         $getAnswers = $question['answers'];
+                                        $question9Description = $question['question_description'];
+                                        ?>
+                                        <div class="question-description">
+                                            <?=$question9Description;?>
+                                        </div>
+                                        <?php
                                         foreach( $getAnswers as $key=>$field ) {?>
                                                 <div class="form-check">
-                                                    <input data-question="10" data-answer="10<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question10<?=$index;?>" type="checkbox" name="page4_question10">
+                                                    <input data-question="10" data-answer="10<?=$index;?>" value="<?= $field['answer_option'];?>" class="form-check-input" id="question10<?=$index;?>" type="radio" name="page4_question10">
                                                     <label class="form-check-label" for="question10<?=$index;?>"> <?= $field['answer_option']; ?> </label>
                                                 </div>
 										<?php $index++; } ?>
@@ -430,8 +426,8 @@
                                     }
                                     ?>
 								</div>
-								<input id="menopause-assessment-result-q9" type="hidden" name="result" value=""/>
-								<input id="menopause-assessment-result-q10" type="hidden" name="result" value=""/>
+								<input id="menopause-assessment-result-q9" type="hidden" name="menopause-assessment-result-q9" value=""/>
+								<input id="menopause-assessment-result-q10" type="hidden" name="menopause-assessment-result-q10" value=""/>
 								<div class="questionnaire-actions">
 									<div class="middle-actions">
 										<button data-back-tab="3" class="btn btn--lg btn--blue-light questionnaire-back">Back</button>
@@ -442,14 +438,14 @@
 							<div id="questionnaire_5" class="your-detail questionnaire-section section-five">
 								<div class="question-wrapper">
 									<div class="std-content">
-										<p>Thank you for completing EMSEE’s menopause health assessment! To receive your personalised assessment please provide your contact details below: </p>
+										<p>Thank you for completing AMC’s menopause health assessment! To receive your personalised assessment report please provide your contact details below:</p>
 									</div>
 									<div class="form-row">
-										<label>Email: </label>
-										<input required class="form-field-text" type="email" value="" name="user_email" />
+										<label>Email: <span class="required-label"> *</span></label>
+										<input required class="form-field-text" type="email" value="" name="user_email" autocomplete="off"/>
 									</div>
 									<div class="form-row">
-                                        <label>Mobile: </label>
+                                        <label>Mobile: <span class="required-label"> *</span></label>
                                         <input required class="form-field-text" type="phone" value="" name="user_phone" />
                                     </div>
                                     <div class="form-row">
@@ -458,7 +454,7 @@
                                     </div>
 
 									<div class="form-row">
-										<label>State: </label>
+										<label>State: <span class="required-label"> *</span></label>
 										<select required class="form-field-text" name="user_state">
 										    <option value="">Select a state</option>
 										    <?php
@@ -691,14 +687,21 @@
 				});
 			});
 			$('.section-four .question-item').each(function() {
-				$(this).find('.form-check input[type="checkbox"]').change(function() {
+				$(this).find('.form-check input[type="radio"]').change(function() {
 					var currentQ = $(this).data('question');
+					var answer = $(this).data('answer');
 					if(currentQ == 9) {
-						//$('#result-question9').html('Output: ' + result10);
-						$('#menopause-assessment-result-q9').val('menopause_assessment_output_10')
+					    if(answer == 91) {
+					        $('#menopause-assessment-result-q9').val('menopause_assessment_output_10')
+					    } else {
+					        $('#menopause-assessment-result-q9').val('')
+					    }
 					} else if(currentQ == 10) {
-						//$('#result-question10').html('Output: ' + result11);
-						$('#menopause-assessment-result-q10').val('menopause_assessment_output_11')
+						if(answer == 101) {
+                            $('#menopause-assessment-result-q10').val('menopause_assessment_output_11')
+                        } else {
+                            $('#menopause-assessment-result-q10').val('')
+                        }
 					}
 				})
 			})
