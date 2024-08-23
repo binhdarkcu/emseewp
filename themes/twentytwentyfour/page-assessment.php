@@ -475,7 +475,7 @@
 									<div class="form-row">
 										<div class="form-check">
 											<input checked class="form-check-input" id="contacted-phone" type="checkbox" name="">
-											<label class="form-check-label" for="contacted-phone"> I would like to be contacted by phone from AMC </label>
+											<label class="form-check-label" for="contacted-phone"> I would like to be contacted by phone to receive more information and schedule a consultation with a menopause-informed doctor </label>
 										</div>
 									</div>
 									<div class="questionnaire-actions">
