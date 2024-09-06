@@ -53,12 +53,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td height="10px"></td>
+                            <td height="24px"></td>
                         </tr>
                         <tr>
                             <td>
                                 <p style="margin: 0;font-size: 16px;font-family: Arial;">
-                                    <b>Note:</b> As you review this report with your GP, we encourage you to take this opportunity to discuss your overall health and ensure your screening tests are current. This could also include assessments for cardiovascular health, bone density, and other conditions that may become more relevant during this stage of life.
+                                    <b>Note:</b> Your healthcare provider can assist in designing a menopause management plan that not only alleviates your symptoms but also supports your long-term health and well-being, ensuring that you remain healthy throughout your menopause transition and beyond.
+                                    As you review this report with your GP, we encourage you to take this opportunity to discuss your overall health and ensure your screening tests are current. This could also include assessments for cardiovascular health, bone density, and other conditions that may become more relevant during this stage of life.
                                     <br/><br/>
                                 </p>
                                 <p style="margin: 0;font-size: 16px;font-family: Arial;">

@@ -70,12 +70,12 @@
                             $emails_data = array(
                                 'user_name' => $user_name,
                                 'email' => $user_email,
-                                'output_report_1_5' => !empty($tab2_output_report) ? $tab2_output_report . ($has_report_6_to_9 ? '<br/><b>AND</b>' : '') : '',
-                                'output_report_6' => !empty($tab3_physical_output_report) ? $tab3_physical_output_report.'<br/>' : '',
-                                'output_report_7' => !empty($tab3_moods_mental_health_output_report) ? $tab3_moods_mental_health_output_report.'<br/>' : '',
-                                'output_report_8' => !empty($tab3_cognition_sleep_output_report) ? $tab3_cognition_sleep_output_report.'<br/>' : '',
-                                'output_report_9' => !empty($tab3_genitourinary_sexual_output_report) ? $tab3_genitourinary_sexual_output_report. ($has_report_9_or_10 ? '<br/><b>AND</b>' : '') : ($has_report_9_or_10 ? '<b>AND</b>' : ''),
-                                'output_report_10' => !empty($tab4_output_report_q9) ? $tab4_output_report_q9.'<br/>' : '',
+                                'output_report_1_5' => !empty($tab2_output_report) ? $tab2_output_report : '',
+                                'output_report_6' => !empty($tab3_physical_output_report) ? $tab3_physical_output_report : '',
+                                'output_report_7' => !empty($tab3_moods_mental_health_output_report) ? $tab3_moods_mental_health_output_report : '',
+                                'output_report_8' => !empty($tab3_cognition_sleep_output_report) ? $tab3_cognition_sleep_output_report : '',
+                                'output_report_9' => !empty($tab3_genitourinary_sexual_output_report) ? $tab3_genitourinary_sexual_output_report : '',
+                                'output_report_10' => !empty($tab4_output_report_q9) ? $tab4_output_report_q9 : '',
                                 'output_report_11' => $tab4_output_report_q10
                             );
                             $subject = 'Your Personalised Menopause Health Report';
@@ -337,8 +337,7 @@
                                  foreach( $question9 as $key=>$question ) {
                                  ?> <div data-question="11" class="question-item display">
 										<div class="std-content">
-											<h5 class="question-title"><?=$question['question_title']?></h5>
-											<i class="tooltip"><?php echo $question['tooltip'];?></i>
+											<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i> </h5>
 										</div>
 										<div class="form-group">
 										<?php
@@ -364,8 +363,7 @@
                                  foreach( $question10 as $key=>$question ) {
                                  ?> <div data-question="10" class="question-item display">
 										<div class="std-content">
-											<h5 class="question-title"><?=$question['question_title']?></h5>
-											<i class="tooltip"><?php echo $question['tooltip'];?></i>
+											<h5 class="question-title"><?=$question['question_title']?> <i class="tooltip-icon bi bi-info-circle" data-toggle="tooltip" data-placement="top" title="<?php echo $question['tooltip'];?>"></i></h5>
 										</div>
 										<div class="form-group">
 										<?php
@@ -457,7 +455,7 @@
 									<div class="form-row">
 										<div class="form-check">
 											<input checked class="form-check-input" id="contacted-phone" type="checkbox" name="">
-											<label class="form-check-label" for="contacted-phone"> I would like to be contacted by phone to receive more information and schedule a consultation with a menopause-informed doctor </label>
+											<label class="form-check-label" for="contacted-phone"> I would like to be contacted by phone to receive additional information and arrange a consultation with a doctor who specializes in menopause care </label>
 										</div>
 									</div>
 									<div class="questionnaire-actions">

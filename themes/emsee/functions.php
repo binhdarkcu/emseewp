@@ -14,6 +14,8 @@
 
 @include 'apis/endpoints.php';
 
+add_theme_support( 'post-thumbnails' );
+
 if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 	/**
 	 * Register custom block styles
