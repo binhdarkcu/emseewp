@@ -43,7 +43,7 @@ function get_posts_by_category($request) {
                 'title' => $post->post_title,
                 'content' => $post->post_content,
                 'permalink' => $permalink,
-                'featured_image' => $featured_image,
+                'featuredImage' => $featured_image,
                 'category' => array(
                     'term_id' => $category[0]->term_id,
                     'name' => $category[0]->name
