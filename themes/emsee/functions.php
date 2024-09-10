@@ -223,36 +223,3 @@ if( function_exists('acf_add_options_page') ) {
     ));
 }
 
-add_filter('manage_questions-result_posts_columns', 'add_questions_result_custom_columns');
-function add_questions_result_custom_columns($columns) {
-    $columns['user_name'] = __('User Name');
-    $columns['user_age'] = __('User Age');
-    $columns['user_email'] = __('Email');
-    return $columns;
-}
-
-/// Populate the custom columns with ACF data
- add_action('manage_questions-result_posts_custom_column', 'populate_questions_result_custom_columns', 10, 2);
- function populate_questions_result_custom_columns($column, $post_id) {
-     switch ($column) {
-         case 'user_name':
-             echo esc_html(get_field('user_name', $post_id));
-             break;
-         case 'user_age':
-             echo esc_html(get_field('user_age', $post_id));
-             break;
-         case 'user_email':
-             echo esc_html(get_field('user_email', $post_id));
-             break;
-     }
- }
-
-// Make the custom columns sortable
-add_filter('manage_edit-questions-result_sortable_columns', 'make_questions_result_columns_sortable');
-function make_questions_result_columns_sortable($columns) {
-    $columns['user_name'] = 'user_name';
-    $columns['user_age'] = 'user_age';
-    $columns['user_email'] = 'user_email';
-    return $columns;
-}
-
