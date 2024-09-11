@@ -70,17 +70,7 @@
                         <tr>
                             <td height="10px"></td>
                         </tr>
-                        <tr>
-                            <td>
-                                <p style="margin: 0;font-size: 16px;font-family: Arial;">
-                                    <b>To book your complimentary no-gap consultation,</b> visit our booking page at [<a href="https://www.menopausecentre.com.au/" target="_blank">https://www.menopausecentre.com.au/</a>] and complete the online form.
-                                    <br/><br/>
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td height="10px"></td>
-                        </tr>
+
                         <tr>
                             <td>
                                 <p style="margin: 0;font-size: 16px;font-family: Arial;">

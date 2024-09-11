@@ -223,3 +223,8 @@ if( function_exists('acf_add_options_page') ) {
     ));
 }
 
+if(isset($_POST['ma_action']) && $_POST['ma_action'] = 'menopausal_new_assessment_form'){
+
+	include('new_assessment_action.php');
+	exit;
+}
