@@ -2,22 +2,22 @@
  //Honeypot
 
 if( filter_var( $_POST['user_email'], FILTER_VALIDATE_EMAIL ) === FALSE ) die('SpamBot');
-    if($_POST['user_email'] && $_POST['user_name']) {
+    if($_POST['user_email'] && $_POST['user_name']) :
 
         $user_name = sanitize_text_field($_POST['user_name']);
         $user_email = sanitize_email($_POST['user_email']);
         $user_age = $_POST['user_age'];
 
         //question 3
-        $question_3 = $_POST['page2_question3'];
-        $question_4 = $_POST['page2_question4'];
-        $question_5 = $_POST['page3_question5'];
-        $question_6 = $_POST['page3_question6'];
-        $question_7 = $_POST['page3_question7'];
-        $question_8 = $_POST['page3_question8'];
-        $question_9 = $_POST['page4_question9'];
-        $question_10 = $_POST['page4_question10'];
-        $question_11 = $_POST['page4_question11'];
+        $question_3 = isset($_POST['page2_question3']) ? $_POST['page2_question3']: 'not found';
+        $question_4 = isset($_POST['page2_question4']) ? $_POST['page2_question4']: 'not found';
+        $question_5 = isset($_POST['page3_question5']) ? $_POST['page3_question5']: 'not found';
+        $question_6 = isset($_POST['page3_question6']) ? $_POST['page3_question6']: 'not found';
+        $question_7 = isset($_POST['page3_question7']) ? $_POST['page3_question7']: 'not found';
+        $question_8 = isset($_POST['page3_question8']) ? $_POST['page3_question8']: 'not found';
+        $question_9 = isset($_POST['page4_question9']) ? $_POST['page4_question9']: 'not found';
+        $question_10 = isset($_POST['page4_question10']) ? $_POST['page4_question10']: 'not found';
+        $question_11 = isset($_POST['page4_question11']) ? $_POST['page4_question11']: 'not found';
 
         // output 1->5
         $menstrual_result = $_POST['menopause-assessment-result'];
@@ -83,14 +83,12 @@ if( filter_var( $_POST['user_email'], FILTER_VALIDATE_EMAIL ) === FALSE ) die('S
             // print_r($result);
         }
         curl_close($ch);
-    } else {
-        echo "error";
-    }
 
-    $subject = 'Your Personalised Menopause Health Report';
-    $receive = array('lthanhbinh@tma.com.vn');
 
-    ob_start();
+        $subject = 'Your Personalised Menopause Health Report';
+        $receive = array('lthanhbinh@tma.com.vn');
+
+        ob_start();
 ?>
 
 <!DOCTYPE html>
@@ -193,65 +191,71 @@ if( filter_var( $_POST['user_email'], FILTER_VALIDATE_EMAIL ) === FALSE ) die('S
 
 <?php
 	$message = ob_get_clean();
-    $to = $_POST['user_email'];
-    $headers = 'From: Australian Menopause Centre <reply@menopausecentre.com.au>' . "\r\n" ;
-    $headers .='Reply-To: reply@menopausecentre.com.au'. "\r\n" ;
-    $headers .='X-Mailer: PHP/' . phpversion();
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-type: text/html; charset=utf-8\r\n";
+        $to = $_POST['user_email'];
+        $headers = 'From: Australian Menopause Centre <reply@menopausecentre.com.au>' . "\r\n" ;
+        $headers .='Reply-To: reply@menopausecentre.com.au'. "\r\n" ;
+        $headers .='X-Mailer: PHP/' . phpversion();
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=utf-8\r\n";
 
-    wp_mail($to, $subject, $message, $headers);
-
-    $message = '
-            <strong>'.$subject.'</strong><br /><br />
-            <strong> User name: </strong>'.$user_name.'<br />
-            <strong> Email: </strong>'.$user_email.'<br />
-            <strong> Age: </strong>'.$user_age.'<br />
-
-            <strong> Q3. When was your last Period? </strong>'.$question_3.'<br />
-            <strong> Q4. Do you still have your ovaries intact? </strong>'.$question_4.'<br />
-            <strong> Q5. Are you currently on any hormonal birth control? </strong>'.$question_5.'<br />
-            <strong> Q6. Do you experience hot flashes or night sweats when you are not taking hormonal contraception? </strong>'.$question_6.'<br />
-            <strong> Q7. Have you had your uterus removed (hysterectomy), an IUD implant, or endometrial ablation? </strong>'.$question_7.'<br />
-            <strong> Q8. Please select the option that best applies to you? </strong>'.$question_8.'<br />
-
-
-            ';
-//<strong> Q9. Do you have any of the following health conditions? </strong>'.$question_4.'<br />
-  //          <strong> Q10. Do you still have your ovaries intact? </strong>'.$question_4.'<br />
-            $message .='Referer: '. $_SERVER['HTTP_REFERER'] .'<br />';
-
-
-            $headers = 'From: ' . ucfirst($user_name).' <noreply@menopausecentre.com.au>' . "\r\n" ;
-            $headers .='Reply-To: '. $_POST['email'] . "\r\n" ;
-            $headers .='X-Mailer: PHP/' . phpversion();
-            $headers .= "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=utf-8\r\n";
-
-    for ($i = 0; $i < count($receive); $i++) :
-
-        $to = $receive[$i];
         wp_mail($to, $subject, $message, $headers);
-    endfor;
 
-    if (isset($_POST['user_email'])) {
-        require('MPC_MailChimp.php');
-        $MailChimp = new Mpc_MailChimp('2331e78a566d934791f331a8bcfa27d8-us7');
-        $result = $MailChimp->post('lists/c1bab8f4f7/members', array(
-                'email_address'	=> $_POST['user_email'],
-                'status'		=> 'subscribed',
-                'merge_fields'	=> array(
-                    'FNAME'	=> $_POST['user_name'],
-                    'MMERGE3'	=> $_POST['user_name'],
-                    'MMERGE5'	=> 'AMC Website',
-                    'MMERGE11'	=> date("Y-m-d")
-                ),
-                'interests'		=> array('bef08cff06' => true,'04155d69ca'=>true)
-        ));
-    }
+        $message = '
+                <strong>'.$subject.'</strong><br /><br />
+                <strong> User name: </strong>'.$user_name.'<br />
+                <strong> Email: </strong>'.$user_email.'<br />
+                <strong> Age: </strong>'.$user_age.'<br />
 
-    $thank_you_location = home_url().'/thank-you-quiz';
+                <strong> Q3. When was your last Period? </strong>'.$question_3.'<br />
+                <strong> Q4. Do you still have your ovaries intact? </strong>'.$question_4.'<br />
+                <strong> Q5. Are you currently on any hormonal birth control? </strong>'.$question_5.'<br />
+                <strong> Q6. Do you experience hot flashes or night sweats when you are not taking hormonal contraception? </strong>'.$question_6.'<br />
+                <strong> Q7. Have you had your uterus removed (hysterectomy), an IUD implant, or endometrial ablation? </strong>'.$question_7.'<br />
+                <strong> Q8. Please select the option that best applies to you? </strong>'.$question_8.'<br />
 
-    header('Location: '. $thank_you_location);
-    die();
+
+                ';
+    //<strong> Q9. Do you have any of the following health conditions? </strong>'.$question_4.'<br />
+      //          <strong> Q10. Do you still have your ovaries intact? </strong>'.$question_4.'<br />
+                $message .='Referer: '. $_SERVER['HTTP_REFERER'] .'<br />';
+
+
+                $headers = 'From: ' . ucfirst($user_name).' <noreply@menopausecentre.com.au>' . "\r\n" ;
+                $headers .='Reply-To: '. $_POST['user_email'] . "\r\n" ;
+                $headers .='X-Mailer: PHP/' . phpversion();
+                $headers .= "MIME-Version: 1.0\r\n";
+                $headers .= "Content-type: text/html; charset=utf-8\r\n";
+
+        for ($i = 0; $i < count($receive); $i++) :
+
+            $to = $receive[$i];
+            wp_mail($to, $subject, $message, $headers);
+        endfor;
+
+        if (isset($_POST['user_email'])) {
+            require('MPC_MailChimp.php');
+            $MailChimp = new Mpc_MailChimp('2331e78a566d934791f331a8bcfa27d8-us7');
+            $result = $MailChimp->post('lists/c1bab8f4f7/members', array(
+                    'email_address'	=> $_POST['user_email'],
+                    'status'		=> 'subscribed',
+                    'merge_fields'	=> array(
+                        'FNAME'	=> $_POST['user_name'],
+                        'MMERGE3'	=> $_POST['user_name'],
+                        'MMERGE5'	=> 'AMC Website',
+                        'MMERGE11'	=> date("Y-m-d")
+                    ),
+                    'interests'		=> array('bef08cff06' => true,'04155d69ca'=>true)
+            ));
+        }
+
+        $thank_you_location = home_url().'/thank-you-quiz';
+
+        echo '<script type="text/javascript">window.location.href = "' . $thank_you_location . '";</script>';
+        die();
+    else :
+        header('Location: '.$_SERVER['HTTP_REFERER']);
+        die();
+    endif;
+        die;
+        exit;
 ?>

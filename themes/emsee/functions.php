@@ -209,22 +209,18 @@ endif;
 
 add_action( 'init', 'twentytwentyfour_pattern_categories' );
 
-// add option page
-if( function_exists('acf_add_options_page') ) {
-	acf_add_options_page(array(
-		'page_title'  => 'Questions',
-		'menu_title' => 'Questions',
-		'menu_slug'  => 'questions-settings'
-	));
-	acf_add_options_page(array(
-        'page_title'  => 'Menopause Assessment',
-        'menu_title' => 'Menopause Assessment',
-        'menu_slug'  => 'menopause-assessment-settings'
-    ));
+function enqueue_custom_scripts() {
+    // add option page
+    wp_deregister_script('jquery');
+
+    // Enqueue jQuery (example uses jQuery 3.3.1, compatible with Bootstrap 4.1.1)
+    wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-3.7.1.min.js');
+    wp_enqueue_script('popper', get_template_directory_uri().'/js/popper.min.js');
+    wp_enqueue_script('bootstrap-js', get_template_directory_uri().'/js/bootstrap.min.js');
+
+    wp_enqueue_script( 'new-assessment-function', get_template_directory_uri() . '/js/function-new-assessment.js');
+
+    wp_enqueue_style('assessment-style', get_template_directory_uri() . '/assets/css/assessment.css');
 }
 
-if(isset($_POST['ma_action']) && $_POST['ma_action'] = 'menopausal_new_assessment_form'){
-
-	include('new_assessment_action.php');
-	exit;
-}
+add_action('wp_enqueue_scripts', 'enqueue_custom_scripts');

@@ -5,13 +5,8 @@
 	<meta name="author" content="Result Driven SEO" />
 	<meta name="viewport" content="width=device-width,initial-scale=1.0"> <?php wp_head(); ?>
 	<link href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/css/bootstrap.min.css" rel="stylesheet" />
-	<link href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/css/assessment.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
-
-  	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="<?php echo esc_url( get_template_directory_uri() ); ?>/js/bootstrap.min.js"></script>
-    <script src="<?php echo esc_url( get_template_directory_uri() ); ?>/js/function-new-assessment.js"></script>
-
+    <?php wp_head();?>
 </head>
 
 <body <?php body_class(); ?>>

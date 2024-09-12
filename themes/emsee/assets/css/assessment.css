@@ -3,7 +3,7 @@ html, body {
   padding: 0!important;
 }
 body {
-  font-family: Solomon-Book, Arial, sans-serif;
+  font-family: 'Lato', Arial, sans-serif;
   font-size: 16px;
   color: #2c2c2c;
   background-color: #fff;
@@ -60,7 +60,6 @@ header{
 .questionnaire-progress__label {
   display: block;
   width: 25%;
-  font-family: Solomon-Bold, Arial, sans-serif;
   font-size: 16px;
   text-align: center;
   color: #849bac;
@@ -143,7 +142,6 @@ header{
   background-color: #ea5735;
   color: #fff;
   border-radius: 2.25rem;
-  font-family: Solomon-Bold, Arial, sans-serif;
   font-weight: 700;
 }
 
@@ -356,8 +354,8 @@ header{
     color: #0e8f9c;
 }
 .tooltip-inner {
-    max-width: 350px;
-    text-align: left;
+    max-width: 350px!important;
+    text-align: left!important;
 }
 
 .hidden {
@@ -375,57 +373,75 @@ header{
 }
 
 /* Tooltip container */
-.custom-tooltip {
+
+.tooltip-container {
+  position: relative;
   display: inline-block;
 }
 
-.custom-tooltip .tooltip-icon {
-  position: relative;
-}
-
   /* Tooltip text */
-.custom-tooltip .tooltiptext {
-  visibility: hidden;
-  width: 360px;
-  background-color: #000;
+.tooltip-container .tooltip-content {
+  display: none;
+  position: absolute;
+  background-color: #333;
   color: #fff;
   text-align: center;
-  padding: 5px;
-  font-size: 14px;
-  border-radius: 6px;
-  text-align: left;
-  font-weight: 400;
-  /* Position the tooltip text */
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: -172px;
-
-  /* Fade in tooltip */
-  opacity: 0;
-  transition: opacity 0.3s;
+  padding: 8px;
+  border-radius: 4px;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: normal; /* Allows multi-line content */
+  max-width: 250px !important; /* Ensure this value is applied */
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 12px;
 }
 
 /* Tooltip arrow */
-.custom-tooltip .tooltiptext::after {
+.tooltip-container .tooltip-content::after {
   content: "";
   position: absolute;
-  top: 100%;
+  top: 100%; /* Arrow pointing down */
   left: 50%;
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #555 transparent transparent transparent;
-}
-
-/* Show the tooltip text when you mouse over the tooltip container */
-.custom-tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
+  border-color: #333 transparent transparent transparent;
 }
 
 @media screen and (min-width: 0) and (max-width: 992px) {
   .assessment-section {
     width: 100%;
+  }
+}
+
+@media screen and (min-width: 0) and (max-width: 640px) {
+  .assessment-section .questionnaire-progress__label{
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .questionnaire-continue,
+  .questionnaire-finish,
+  .has-result-next-tab,
+  .questionnaire-submit,
+  .questionnaire4-next {
+    float: right;
+    margin-right: 30px;
+  }
+
+  .assessment-section .symptom-title {
+    font-size: 14px;
+  }
+
+  .symptoms_list .column {
+    width: 18%;
+    font-size: 13px;
+    word-break: break-word;
+  }
+
+  .symptoms_list .col1 {
+    width: 26%;
+    padding-left: 5px;
   }
 }

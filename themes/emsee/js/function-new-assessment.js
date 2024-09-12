@@ -1,23 +1,14 @@
 window.addEventListener("load", function(event) {
-  $(document).ready(function() {
+  jQuery(document).ready(function($) {
     var clsQuestionnaireSection = $('.questionnaire-section');
     var progressBar = $('#progressBar');
     var percentLabel = $('#percentLabel');
     var questionnaireStart = $('#questionnaire-start');
     var userAge = 0;
-    var result1 = $('#result1').val();
-    var result2 = $('#result2').val();
-    var result3 = $('#result3').val();
-    var result4 = $('#result4').val();
-    var result5 = $('#result5').val();
-    var result6 = $('#result6').val();
-    var result7 = $('#result6').val();
-    var result8 = $('#result8').val();
-    var result9 = $('#result8').val();
-    var result10 = $('#result10').val();
-    var result11 = $('#result11').val();
 
     var hasResultAtStep = 0;
+
+    jQuery('[data-toggle="tooltip"]').tooltip();
 
     function checkUserAndAge() {
       let isValidJUserNameAndAge = true;
@@ -43,6 +34,10 @@ window.addEventListener("load", function(event) {
 
     $('.questionnaire-continue, .has-result-next-tab, .questionnaire4-next').on('click', function(e) {
       e.preventDefault();
+      $('html, body').animate({
+        scrollTop: $('#new-assessment-form').offset().top
+      }, 300); // 1000 is the duration in milliseconds
+
       var dataNextQuestion = $(this).data('next-tab');
       var dataProgress = $(this).data('progress');
       clsQuestionnaireSection.removeClass('current');
@@ -369,9 +364,6 @@ window.addEventListener("load", function(event) {
     $('input[type="checkbox"], input[type="radio"]').on('change', function() {
       validatePersonalHistory();
     });
-
-    //$('[data-toggle="tooltip"]').tooltip()
-
 
 
   });
